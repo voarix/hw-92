@@ -37,6 +37,7 @@ interface ActiveConnections {
 
 const activeConnections: { [id: string]: ActiveConnections } = {};
 const Messages: MongoMessage[] = [];
+const OnlineUsers: { [userId: string]: string } = {};
 
 router.ws("/chat", (ws, _req) => {
   const id = randomUUID();
@@ -68,6 +69,30 @@ router.ws("/chat", (ws, _req) => {
             }),
           );
           return;
+        }
+
+        activeConnections[id].userId = String(user._id);
+        OnlineUsers[user._id.toString()] = user.username;
+
+        const usernames: string[] = [];
+
+        for (const key in activeConnections) {
+          const con = activeConnections[key];
+          if (con.userId) {
+            const name = OnlineUsers[con.userId];
+            if (name) {
+              usernames.push(name);
+            }
+          }
+        }
+
+        const onlineUsersMessage: ServerMessage = {
+          type: "ONLINE_USERS",
+          payload: usernames,
+        };
+
+        for (const key in activeConnections) {
+          activeConnections[key].ws.send(JSON.stringify(onlineUsersMessage));
         }
 
         activeConnections[id].userId = String(user._id);
@@ -123,6 +148,34 @@ router.ws("/chat", (ws, _req) => {
   });
 
   ws.on("close", () => {
+    const userId = activeConnections[id].userId;
+    if (userId) {
+      delete OnlineUsers[userId];
+    }
+
+    delete activeConnections[id];
+
+    const usernames: string[] = [];
+
+    for (const key in activeConnections) {
+      const conn = activeConnections[key];
+      if (conn.userId) {
+        const name = OnlineUsers[conn.userId];
+        if (name) {
+          usernames.push(name);
+        }
+      }
+    }
+
+    const onlineUsersMessage: ServerMessage = {
+      type: "ONLINE_USERS",
+      payload: usernames,
+    };
+
+    for (const key in activeConnections) {
+      activeConnections[key].ws.send(JSON.stringify(onlineUsersMessage));
+    }
+
     console.log("Client disconnected, id= " + id);
     delete activeConnections[id];
   });
