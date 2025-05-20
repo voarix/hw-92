@@ -1,7 +1,13 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { isAxiosError } from "axios";
 import axiosApi from "../../axiosApi.ts";
-import type { GlobalError, LoginMutation, RegisterMutation, User, ValidationError } from "../../types";
+import type {
+  GlobalError,
+  LoginMutation,
+  RegisterMutation,
+  User,
+  ValidationError,
+} from "../../types";
 
 export interface RegisterAndLoginResponse {
   user: User;

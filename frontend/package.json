@@ -12,15 +12,21 @@
     "format": "npx prettier . --write"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.8.2",
-    "axios": "^1.9.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@hookform/resolvers": "^5.0.1",
+    "@mui/icons-material": "^6.4.8",
+    "@mui/material": "^6.4.8",
+    "@mui/styled-engine-sc": "^6.4.6",
+    "@reduxjs/toolkit": "^2.7.0",
+    "axios": "^1.8.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.6.0",
+    "react-router-dom": "^7.5.1",
     "react-toastify": "^11.0.5",
     "redux-persist": "^6.0.0",
-    "@mui/icons-material": "^6.4.8"
+    "styled-components": "^6.1.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
