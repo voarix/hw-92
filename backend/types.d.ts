@@ -22,5 +22,5 @@ export interface ClientMessage {
 
 interface ServerMessage {
   type: "NEW_MESSAGE" | "ALL_MESSAGES" | "ONLINE_USERS";
-  payload?: MongoMessage[] | string[];
+  payload?: MongoMessage[] | string[] | MongoMessage;
 }

@@ -8,6 +8,7 @@ import type {
   User,
   ValidationError,
 } from "../../types";
+import type { RootState } from "../../app/store.ts";
 
 export interface RegisterAndLoginResponse {
   user: User;
@@ -62,6 +63,12 @@ export const login = createAsyncThunk<
   }
 });
 
-export const logout = createAsyncThunk<void, void>("users/logout", async () => {
-  await axiosApi.delete("users/sessions", { withCredentials: true });
+export const logout = createAsyncThunk<void, void, {state: RootState}>("users/logout", async (_, {getState}) => {
+  const token = getState().users.user?.token;
+
+  await axiosApi.delete("users/sessions", {
+    headers: {
+      Authorization: token
+    }
+  });
 });

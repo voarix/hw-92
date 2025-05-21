@@ -15,19 +15,7 @@ usersRouter.post("/", async (req, res, next) => {
 
     user.generateToken();
     await user.save();
-
-    res.cookie("token", user.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
-    const safeUser = {
-      _id: user._id,
-      username: user.username,
-    };
-
-    res.send({ user: safeUser, message: "User registered successfully." });
+    res.send({user, message: "User registered successfully."});
   } catch (error) {
     if (error instanceof Error.ValidationError) {
       res.status(400).send(error);
@@ -61,30 +49,16 @@ usersRouter.post("/sessions", async (req, res, next) => {
 
     user.generateToken();
     await user.save();
-
-    res.cookie("token", user.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
-    const safeUser = {
-      _id: user._id,
-      username: user.username,
-    };
-
-    res.send({ user: safeUser, message: "Username and password is correct" });
+    res.send({message: "Username and password is correct", user});
   } catch (error) {
     next(error);
   }
 });
 
 usersRouter.delete("/sessions", async (req, res, next) => {
-  const reqCook = req as RequestWithUser;
-  const token = reqCook.cookies.token;
+  const token = req.get("Authorization");
 
   if (!token) {
-    res.clearCookie("token");
     res.send({ message: "Success logout" });
     return;
   }
@@ -96,12 +70,6 @@ usersRouter.delete("/sessions", async (req, res, next) => {
       user.generateToken();
       await user.save();
     }
-
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
 
     res.send({ message: "Success logout" });
   } catch (error) {

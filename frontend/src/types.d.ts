@@ -30,3 +30,23 @@ export interface ValidationError {
 export interface GlobalError {
   error: string;
 }
+
+export interface ClientMessage {
+  type: 'LOGIN' | 'SEND_MESSAGE';
+  payload?: string;
+}
+
+export interface MongoMessage {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+  };
+  text: string;
+  createdAt: string;
+}
+
+export interface IncomingMessage {
+  type: 'ALL_MESSAGES' | 'ONLINE_USERS' | 'NEW_MESSAGE';
+  payload: MongoMessage[] | string[] | MongoMessage;
+}

@@ -47,7 +47,7 @@ router.ws("/chat", (ws, _req) => {
   ws.send(
     JSON.stringify({
       type: "ALL_MESSAGES",
-      messages: Messages.slice(-30),
+      payload: Messages.slice(-30),
     } as ServerMessage),
   );
 
@@ -99,7 +99,7 @@ router.ws("/chat", (ws, _req) => {
         ws.send(
           JSON.stringify({
             type: "ALL_MESSAGES",
-            messages: Messages.slice(-30),
+            payload: Messages.slice(-30),
           }),
         );
       } else if (decoded.type === "SEND_MESSAGE" && decoded.payload) {
@@ -135,7 +135,10 @@ router.ws("/chat", (ws, _req) => {
         Messages.push(newMessage);
 
         Object.values(activeConnections).forEach((connectionWs) => {
-          connectionWs.ws.send(JSON.stringify(newMessage));
+          connectionWs.ws.send(JSON.stringify({
+            type: "NEW_MESSAGE",
+            payload: newMessage,
+          }));
         });
       }
     } catch (error) {
