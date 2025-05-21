@@ -32,7 +32,7 @@ export interface GlobalError {
 }
 
 export interface ClientMessage {
-  type: 'LOGIN' | 'SEND_MESSAGE';
+  type: "LOGIN" | "SEND_MESSAGE";
   payload?: string;
 }
 
@@ -47,6 +47,6 @@ export interface MongoMessage {
 }
 
 export interface IncomingMessage {
-  type: 'ALL_MESSAGES' | 'ONLINE_USERS' | 'NEW_MESSAGE';
+  type: "ALL_MESSAGES" | "ONLINE_USERS" | "NEW_MESSAGE";
   payload: MongoMessage[] | string[] | MongoMessage;
 }

@@ -63,12 +63,15 @@ export const login = createAsyncThunk<
   }
 });
 
-export const logout = createAsyncThunk<void, void, {state: RootState}>("users/logout", async (_, {getState}) => {
-  const token = getState().users.user?.token;
+export const logout = createAsyncThunk<void, void, { state: RootState }>(
+  "users/logout",
+  async (_, { getState }) => {
+    const token = getState().users.user?.token;
 
-  await axiosApi.delete("users/sessions", {
-    headers: {
-      Authorization: token
-    }
-  });
-});
+    await axiosApi.delete("users/sessions", {
+      headers: {
+        Authorization: token,
+      },
+    });
+  },
+);

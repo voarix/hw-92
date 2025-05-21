@@ -19,10 +19,12 @@ const Chat = () => {
 
   const sendMessage = () => {
     if (ws.current && oneMessage.trim() && user) {
-      ws.current.send(JSON.stringify({
-        type: "SEND_MESSAGE",
-        payload: oneMessage,
-      } as ClientMessage));
+      ws.current.send(
+        JSON.stringify({
+          type: "SEND_MESSAGE",
+          payload: oneMessage,
+        } as ClientMessage),
+      );
     }
     setOneMessage("");
   };
@@ -32,44 +34,61 @@ const Chat = () => {
     sendMessage();
   };
 
-
   useEffect(() => {
-    ws.current = new WebSocket("ws://localhost:8000/chat");
+    let timeOutServer: NodeJS.Timeout;
 
-    ws.current.onopen = () => {
-      console.log("WebSocket connected");
-      if (user && user.token) {
-        ws.current?.send(JSON.stringify({
-          type: "LOGIN",
-          payload: user.token,
-        } as ClientMessage));
-      } else {
-        navigate("/login");
-      }
+    const connect = () => {
+      ws.current = new WebSocket("ws://localhost:8000/chat");
+
+      ws.current.onopen = () => {
+        console.log("WebSocket connected");
+        if (user && user.token) {
+          ws.current?.send(
+            JSON.stringify({
+              type: "LOGIN",
+              payload: user.token,
+            } as ClientMessage),
+          );
+        } else {
+          navigate("/login");
+        }
+      };
+
+
+      ws.current.onmessage = (event) => {
+        const decodedMessage = JSON.parse(event.data) as IncomingMessage;
+
+        if (decodedMessage.type === "ONLINE_USERS") {
+          setOnlineUsers(decodedMessage.payload as string[]);
+        } else if (decodedMessage.type === "ALL_MESSAGES") {
+          setMessages(decodedMessage.payload as MongoMessage[]);
+        } else if (decodedMessage.type === "NEW_MESSAGE") {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            decodedMessage.payload as MongoMessage,
+          ]);
+        }
+      };
+
+      ws.current.onclose = () => {
+        console.log("WebSocket closed, wait 5 seconds");
+        timeOutServer = setTimeout(connect, 5000);
+      };
     };
 
-    ws.current.onmessage = (event) => {
-      const decodedMessage = JSON.parse(event.data) as IncomingMessage;
-
-      if(decodedMessage.type === "ONLINE_USERS") {
-        setOnlineUsers(decodedMessage.payload as string[]);
-      } else if(decodedMessage.type === "ALL_MESSAGES") {
-        setMessages(decodedMessage.payload as MongoMessage[]);
-      } else if (decodedMessage.type === "NEW_MESSAGE") {
-        setMessages((prevMessages) => [...prevMessages, decodedMessage.payload as MongoMessage]);
-      }
-    };
+    connect();
 
     return () => {
       if (ws.current) {
         ws.current?.close();
       }
-    }
+      clearTimeout(timeOutServer);
+    };
   }, []);
 
   return (
-    <Grid container spacing={2} columns={6} sx={{ height: "100vh", p: 2 }}>
-      <Grid size={{ xs: 2 }}>
+    <Grid container spacing={2} columns={6} sx={{height: "100vh", p: 2}}>
+      <Grid size={{xs: 2}}>
         <Box
           sx={{
             backgroundColor: "#f0f4f8",
@@ -80,7 +99,9 @@ const Chat = () => {
             overflowY: "auto",
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2 }}>Online users:</Typography>
+          <Typography variant="h6" sx={{mb: 2}}>
+            Online users:
+          </Typography>
           {onlineUsers.map((user) => (
             <Box
               key={user}
@@ -98,7 +119,7 @@ const Chat = () => {
           ))}
         </Box>
       </Grid>
-      <Grid size={{ xs: 4 }}>
+      <Grid size={{xs: 4}}>
         <Box
           sx={{
             borderRadius: 2,
@@ -127,13 +148,18 @@ const Chat = () => {
                   borderLeft: "4px solid #1976d2",
                 }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{fontWeight: 600}}>
                   {message.user.username}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+                <Typography
+                  variant="body2"
+                  sx={{color: "text.secondary", mb: 1}}
+                >
                   {dayjs(message.createdAt).format("DD.MM HH:mm")}
                 </Typography>
-                <Typography variant="body1" sx={{ wordWrap: "break-word" }}>{message.text}</Typography>
+                <Typography variant="body1" sx={{wordWrap: "break-word"}}>
+                  {message.text}
+                </Typography>
               </Box>
             ))}
           </Box>
@@ -150,14 +176,14 @@ const Chat = () => {
             <TextField
               onChange={(e) => setOneMessage(e.target.value)}
               value={oneMessage}
-              sx={{ flex: 1 }}
+              sx={{flex: 1}}
               variant="outlined"
               placeholder="Yout message"
             />
 
             <Button
               type="submit"
-              variant='contained'
+              variant="contained"
               sx={{ml: 2, borderRadius: "8px"}}
             >
               Send
