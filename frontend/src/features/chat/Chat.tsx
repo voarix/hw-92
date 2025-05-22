@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ClientMessage, IncomingMessage, MongoMessage } from "../../types";
-import { useAppSelector } from "../../app/hooks";
-import { selectUser } from "../users/usersSlice.ts";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { selectUser, unsetUser } from "../users/usersSlice.ts";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid2";
 import dayjs from "dayjs";
@@ -17,6 +17,7 @@ const Chat = () => {
 
   const navigate = useNavigate();
   const user = useAppSelector(selectUser);
+  const dispatch = useAppDispatch();
 
   const sendMessage = () => {
     if (ws.current && oneMessage.trim() && user) {
@@ -42,6 +43,19 @@ const Chat = () => {
     }
   };
 
+  const logout = () => {
+    if (ws.current) {
+      ws.current.send(
+        JSON.stringify({
+          type: "LOGOUT",
+        } as ClientMessage),
+      );
+      ws.current.close();
+      dispatch(unsetUser());
+    }
+    navigate("/login");
+  };
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage();
@@ -63,6 +77,7 @@ const Chat = () => {
             } as ClientMessage),
           );
         } else {
+          ws.current?.close();
           navigate("/login");
         }
       };
@@ -102,7 +117,7 @@ const Chat = () => {
       }
       clearTimeout(timeOutServer);
     };
-  }, []);
+  }, [user, navigate]);
 
   return (
     <Grid container spacing={2} columns={6} sx={{ height: "100vh", p: 2 }}>
@@ -117,6 +132,14 @@ const Chat = () => {
             overflowY: "auto",
           }}
         >
+          <Button
+            onClick={logout}
+            variant="contained"
+            color="error"
+            sx={{ m: 3 }}
+          >
+            Logout
+          </Button>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Online users:
           </Typography>

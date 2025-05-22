@@ -190,6 +190,36 @@ router.ws("/chat", (ws, _req) => {
             } as ServerMessage),
           );
         });
+      } else if (decoded.type === "LOGOUT") {
+        const userId = activeConnections[id].userId;
+        if (userId) {
+          delete OnlineUsers[userId];
+          activeConnections[id].userId = undefined;
+          activeConnections[id].role = undefined;
+        }
+
+        const usernames = Object.values(activeConnections)
+          .filter(
+            (connectionKey) =>
+              connectionKey.userId && OnlineUsers[connectionKey.userId],
+          )
+          .map((connection) => OnlineUsers[connection.userId!]);
+
+        const onlineUsersMessage: ServerMessage = {
+          type: "ONLINE_USERS",
+          payload: usernames,
+        };
+
+        for (const key in activeConnections) {
+          activeConnections[key].ws.send(JSON.stringify(onlineUsersMessage));
+        }
+
+        ws.send(
+          JSON.stringify({
+            type: "ALL_MESSAGES",
+            payload: Messages.slice(-30),
+          } as ServerMessage),
+        );
       }
     } catch (error) {
       ws.send(

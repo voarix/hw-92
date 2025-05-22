@@ -33,7 +33,7 @@ export interface GlobalError {
 }
 
 export interface ClientMessage {
-  type: "LOGIN" | "SEND_MESSAGE" | "DELETE_MESSAGE";
+  type: "LOGIN" | "SEND_MESSAGE" | "DELETE_MESSAGE" | "LOGOUT";
   payload?: string;
 }
 
