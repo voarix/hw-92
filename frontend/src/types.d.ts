@@ -13,6 +13,7 @@ export interface User {
   _id: string;
   username: string;
   token: string;
+  role: string;
 }
 
 export interface ValidationError {
@@ -32,7 +33,7 @@ export interface GlobalError {
 }
 
 export interface ClientMessage {
-  type: "LOGIN" | "SEND_MESSAGE";
+  type: "LOGIN" | "SEND_MESSAGE" | "DELETE_MESSAGE";
   payload?: string;
 }
 
@@ -47,6 +48,6 @@ export interface MongoMessage {
 }
 
 export interface IncomingMessage {
-  type: "ALL_MESSAGES" | "ONLINE_USERS" | "NEW_MESSAGE";
-  payload: MongoMessage[] | string[] | MongoMessage;
+  type: "ALL_MESSAGES" | "ONLINE_USERS" | "NEW_MESSAGE" | "DELETED_MESSAGE";
+  payload: MongoMessage[] | string[] | MongoMessage | string;
 }

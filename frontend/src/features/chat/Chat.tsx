@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ClientMessage, IncomingMessage, MongoMessage } from "../../types";
 import { useAppSelector } from "../../app/hooks";
@@ -7,6 +7,7 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid2";
 import dayjs from "dayjs";
 import { Button, TextField, Typography } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const Chat = () => {
   const ws = useRef<WebSocket | null>(null);
@@ -27,6 +28,18 @@ const Chat = () => {
       );
     }
     setOneMessage("");
+  };
+
+  const onDeleteMessage = (msgId: string) => {
+    if (ws.current && user && user.role === "admin") {
+      window.confirm("Are you sure?") &&
+        ws.current.send(
+          JSON.stringify({
+            type: "DELETE_MESSAGE",
+            payload: msgId,
+          } as ClientMessage),
+        );
+    }
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -54,7 +67,6 @@ const Chat = () => {
         }
       };
 
-
       ws.current.onmessage = (event) => {
         const decodedMessage = JSON.parse(event.data) as IncomingMessage;
 
@@ -67,6 +79,12 @@ const Chat = () => {
             ...prevMessages,
             decodedMessage.payload as MongoMessage,
           ]);
+        } else if (decodedMessage.type === "DELETED_MESSAGE") {
+          setMessages((prevMessages) =>
+            prevMessages.filter((msg) => msg._id !== decodedMessage.payload),
+          );
+        } else {
+          console.log("Unknown message type", decodedMessage);
         }
       };
 
@@ -87,8 +105,8 @@ const Chat = () => {
   }, []);
 
   return (
-    <Grid container spacing={2} columns={6} sx={{height: "100vh", p: 2}}>
-      <Grid size={{xs: 2}}>
+    <Grid container spacing={2} columns={6} sx={{ height: "100vh", p: 2 }}>
+      <Grid size={{ xs: 2 }}>
         <Box
           sx={{
             backgroundColor: "#f0f4f8",
@@ -99,7 +117,7 @@ const Chat = () => {
             overflowY: "auto",
           }}
         >
-          <Typography variant="h6" sx={{mb: 2}}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
             Online users:
           </Typography>
           {onlineUsers.map((user) => (
@@ -119,7 +137,7 @@ const Chat = () => {
           ))}
         </Box>
       </Grid>
-      <Grid size={{xs: 4}}>
+      <Grid size={{ xs: 4 }}>
         <Box
           sx={{
             borderRadius: 2,
@@ -146,18 +164,34 @@ const Chat = () => {
                   backgroundColor: "#f9f9f9",
                   borderRadius: 2,
                   borderLeft: "4px solid #1976d2",
+                  position: "relative",
                 }}
               >
-                <Typography variant="subtitle2" sx={{fontWeight: 600}}>
+                {user?.role === "admin" && (
+                  <Button
+                    onClick={() => onDeleteMessage(message._id)}
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      minWidth: "auto",
+                      padding: "4px",
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </Button>
+                )}
+
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                   {message.user.username}
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{color: "text.secondary", mb: 1}}
+                  sx={{ color: "text.secondary", mb: 1 }}
                 >
                   {dayjs(message.createdAt).format("DD.MM HH:mm")}
                 </Typography>
-                <Typography variant="body1" sx={{wordWrap: "break-word"}}>
+                <Typography variant="body1" sx={{ wordWrap: "break-word" }}>
                   {message.text}
                 </Typography>
               </Box>
@@ -176,7 +210,7 @@ const Chat = () => {
             <TextField
               onChange={(e) => setOneMessage(e.target.value)}
               value={oneMessage}
-              sx={{flex: 1}}
+              sx={{ flex: 1 }}
               variant="outlined"
               placeholder="Yout message"
             />
@@ -184,7 +218,7 @@ const Chat = () => {
             <Button
               type="submit"
               variant="contained"
-              sx={{ml: 2, borderRadius: "8px"}}
+              sx={{ ml: 2, borderRadius: "8px" }}
             >
               Send
             </Button>

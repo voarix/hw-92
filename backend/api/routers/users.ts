@@ -15,7 +15,7 @@ usersRouter.post("/", async (req, res, next) => {
 
     user.generateToken();
     await user.save();
-    res.send({user, message: "User registered successfully."});
+    res.send({ user, message: "User registered successfully." });
   } catch (error) {
     if (error instanceof Error.ValidationError) {
       res.status(400).send(error);
@@ -49,7 +49,7 @@ usersRouter.post("/sessions", async (req, res, next) => {
 
     user.generateToken();
     await user.save();
-    res.send({message: "Username and password is correct", user});
+    res.send({ message: "Username and password is correct", user });
   } catch (error) {
     next(error);
   }

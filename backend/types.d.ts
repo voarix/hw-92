@@ -3,6 +3,7 @@ export interface UserFields {
   password: string;
   token: string;
   __confirmPassword: string;
+  role: string;
 }
 
 export interface MongoMessage {
@@ -16,11 +17,11 @@ export interface MongoMessage {
 }
 
 export interface ClientMessage {
-  type: "LOGIN" | "SEND_MESSAGE" | "LOGOUT";
+  type: "LOGIN" | "SEND_MESSAGE" | "LOGOUT" | "DELETE_MESSAGE";
   payload?: string;
 }
 
 interface ServerMessage {
-  type: "NEW_MESSAGE" | "ALL_MESSAGES" | "ONLINE_USERS";
-  payload?: MongoMessage[] | string[] | MongoMessage;
+  type: "NEW_MESSAGE" | "ALL_MESSAGES" | "ONLINE_USERS" | "DELETED_MESSAGE";
+  payload?: MongoMessage[] | string[] | MongoMessage | string;
 }

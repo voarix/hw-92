@@ -33,6 +33,7 @@ wsInstance.applyTo(router);
 interface ActiveConnections {
   ws: WebSocket;
   userId?: string;
+  role?: string;
 }
 
 const activeConnections: { [id: string]: ActiveConnections } = {};
@@ -71,6 +72,7 @@ router.ws("/chat", (ws, _req) => {
           return;
         }
 
+        activeConnections[id].role = user.role;
         activeConnections[id].userId = String(user._id);
         OnlineUsers[user._id.toString()] = user.username;
 
@@ -100,7 +102,7 @@ router.ws("/chat", (ws, _req) => {
           JSON.stringify({
             type: "ALL_MESSAGES",
             payload: Messages.slice(-30),
-          }),
+          } as ServerMessage),
         );
       } else if (decoded.type === "SEND_MESSAGE" && decoded.payload) {
         const userId = activeConnections[id].userId;
@@ -135,10 +137,58 @@ router.ws("/chat", (ws, _req) => {
         Messages.push(newMessage);
 
         Object.values(activeConnections).forEach((connectionWs) => {
-          connectionWs.ws.send(JSON.stringify({
-            type: "NEW_MESSAGE",
-            payload: newMessage,
-          }));
+          connectionWs.ws.send(
+            JSON.stringify({
+              type: "NEW_MESSAGE",
+              payload: newMessage,
+            } as ServerMessage),
+          );
+        });
+      } else if (decoded.type === "DELETE_MESSAGE" && decoded.payload) {
+        const userId = activeConnections[id].userId;
+        const role = activeConnections[id].role;
+
+        if (!userId) {
+          ws.send(
+            JSON.stringify({
+              error: "You are not logged in",
+            }),
+          );
+          return;
+        }
+
+        if (role !== "admin") {
+          ws.send(
+            JSON.stringify({
+              error: "You are not admin",
+            }),
+          );
+          return;
+        }
+
+        const msgDeleteId = decoded.payload;
+        const msgDeleteIndex = Messages.findIndex(
+          (msg) => msg._id === msgDeleteId,
+        );
+
+        if (msgDeleteIndex === -1) {
+          ws.send(
+            JSON.stringify({
+              error: "Message not found",
+            }),
+          );
+          return;
+        }
+
+        Messages.splice(msgDeleteIndex, 1);
+
+        Object.values(activeConnections).forEach((connectionWs) => {
+          connectionWs.ws.send(
+            JSON.stringify({
+              type: "DELETED_MESSAGE",
+              payload: msgDeleteId,
+            } as ServerMessage),
+          );
         });
       }
     } catch (error) {
